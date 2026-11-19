@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#172554">
+<title>STUDY LAB｜PDF問題作成</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f4f6fb}
+*{box-sizing:border-box}body{margin:0;padding:20px 14px 48px}.wrap{max-width:760px;margin:auto}
+header{background:#172554;color:white;padding:22px;border-radius:20px;margin-bottom:18px}
+h1{font-size:23px;margin:0 0 6px}header p{margin:0;color:#dbeafe;font-size:14px}
+.card{background:white;border:1px solid #e1e6ef;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 3px 12px #16264a0b}
+h2{font-size:18px;margin:0 0 14px}.muted{color:#64748b;font-size:13px;line-height:1.6}
+label{display:block;font-weight:650;margin:12px 0 7px}
+input,select,button{font:inherit}input[type=file],input[type=url]{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;background:white}
+select{padding:11px;border:1px solid #cbd5e1;border-radius:10px;background:white;width:100%}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:0;border-radius:12px;padding:14px 16px;font-weight:700;cursor:pointer}
+.primary{background:#2563eb;color:white;width:100%;margin-top:16px}.secondary{background:#e8eefc;color:#1e40af}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{padding:12px;border-radius:10px;background:#eff6ff;color:#1e40af;font-size:14px;white-space:pre-wrap;margin-top:12px}
+.error{background:#fff1f2;color:#9f1239}.success{background:#ecfdf5;color:#065f46}
+.question{border-top:1px solid #e5e7eb;padding:16px 0}.question:first-child{border-top:0}
+.qtitle{font-weight:750;line-height:1.65;margin-bottom:10px}.choice{display:block;padding:10px;border:1px solid #dbe2ec;border-radius:10px;margin:7px 0;font-weight:450}
+.choice input{margin-right:8px}.explain{background:#f8fafc;border-radius:10px;padding:12px;margin-top:10px;font-size:14px;line-height:1.7}
+.tag{display:inline-block;background:#eef2ff;color:#3730a3;padding:4px 8px;border-radius:20px;font-size:12px;margin-bottom:8px}
+.small{font-size:12px;color:#64748b}.hidden{display:none!important}
+@media(max-width:480px){.grid{grid-template-columns:1fr}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body><div class="wrap">
+<header><h1>STUDY LAB｜PDF問題作成</h1><p>講義PDFから、指定した問題数の5択問題を作成します。</p></header>
+<section class="card">
+<h2>① PDFを選択</h2>
+<input id="pdf" type="file" accept="application/pdf">
+<div id="pdfInfo" class="muted">テキストが埋め込まれたPDFに対応。スキャン画像だけのPDFは現在読み取れません。</div>
+</section>
+<section class="card">
+<h2>② 出題条件</h2>
+<div class="grid">
+<div><label for="count">問題数</label><select id="count"><option>10</option><option selected>30</option><option>50</option><option>100</option></select></div>
+<div><label for="difficulty">難易度</label><select id="difficulty"><option>基礎</option><option selected>標準</option><option>応用</option></select></div>
+</div>
+<label>出題形式</label><input value="5択" disabled>
+<label for="endpoint">AI生成サーバーURL</label>
+<input id="endpoint" type="url" placeholder="https://あなたのWorker名.あなたのサブドメイン.workers.dev">
+<p class="muted">AI生成を使うには、別途Cloudflare WorkerとAI APIキーの設定が必要です。APIキーをこの画面に入力する必要はありません。</p>
+<button id="generate" class="primary" disabled>PDFを読み込んで問題を作成</button>
+<div id="status" class="status hidden" role="status"></div>
+</section>
+<section id="results" class="card hidden">
+<h2>③ 問題演習</h2><div id="questionList"></div>
+<button id="grade" class="primary">採点する</button>
+<div id="score" class="status hidden"></div>
+</section>
+<p class="small">資料の内容に基づく学習補助です。生成された正解・解説は必ず元資料と照合してください。</p>
+</div>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const $=id=>document.getElementById(id);let extractedPages=[],questions=[];
+function showStatus(msg,kind=''){ $('status').className='status '+kind; $('status').textContent=msg; $('status').classList.remove('hidden');}
+$('pdf').addEventListener('change',async e=>{
+ const f=e.target.files[0]; extractedPages=[]; $('generate').disabled=true;
+ if(!f)return;if(f.type!=='application/pdf'){showStatus('PDFファイルを選択してください。','error');return;}
+ if(f.size>30*1024*1024){showStatus('PDFは30MB以下のファイルを選んでください。','error');return;}
+ try{
+ showStatus('PDFを読み込んでいます…');const data=await f.arrayBuffer();const pdf=await pdfjsLib.getDocument({data}).promise;
+ for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n);const c=await page.getTextContent();const txt=c.items.map(x=>x.str).join(' ').replace(/\s+/g,' ').trim();if(txt)extractedPages.push({page:n,text:txt});}
+ const chars=extractedPages.reduce((a,p)=>a+p.text.length,0);
+ $('pdfInfo').textContent=`${f.name}｜${pdf.numPages}ページ｜抽出テキスト ${chars.toLocaleString()}文字`;
+ if(chars<200){showStatus('文字をほとんど抽出できませんでした。画像スキャンPDFの可能性があります。OCR対応版が必要です。','error');return;}
+ $('generate').disabled=false;showStatus('PDFを読み込みました。問題数・難易度を確認して作成できます。','success');
+ }catch(err){showStatus('PDFを読み込めませんでした。ファイルが破損していないか確認してください。','error');}
+});
+$('generate').addEventListener('click',async()=>{
+ const endpoint=$('endpoint').value.trim();if(!endpoint){showStatus('AI生成サーバーURLを設定してください。READMEの手順を確認してください。','error');return;}
+ if(!extractedPages.length){showStatus('先にPDFを選択してください。','error');return;}
+ $('generate').disabled=true;showStatus('AIが資料を分析して問題を作成しています。少し時間がかかります…');
+ try{
+ const pages=extractedPages.map(p=>`【${p.page}ページ】\n${p.text}`).join('\n\n').slice(0,65000);
+ const res=await fetch(endpoint.replace(/\/$/,'')+'/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:pages,count:Number($('count').value),difficulty:$('difficulty').value})});
+ const data=await res.json();if(!res.ok)throw new Error(data.error||'サーバーエラー');
+ questions=data.questions||[];if(!questions.length)throw new Error('問題を受け取れませんでした。');
+ renderQuestions();$('results').classList.remove('hidden');$('score').classList.add('hidden');showStatus(`${questions.length}問を作成しました。各問題に回答して「採点する」を押してください。`,'success');
+ }catch(err){showStatus('問題作成に失敗しました：'+err.message,'error');}
+ finally{$('generate').disabled=false;}
+});
+function renderQuestions(){
+ $('questionList').innerHTML='';
+ questions.forEach((q,i)=>{
+ const div=document.createElement('div');div.className='question';
+ const tag=document.createElement('span');tag.className='tag';tag.textContent=`第${i+1}問｜${q.source_page?`資料 ${q.source_page}ページ`:'出典ページ未特定'}`;div.append(tag);
+ const title=document.createElement('div');title.className='qtitle';title.textContent=q.question;div.append(title);
+ (q.choices||[]).forEach((c,j)=>{const lab=document.createElement('label');lab.className='choice';const inp=document.createElement('input');inp.type='radio';inp.name='q'+i;inp.value=j;lab.append(inp,document.createTextNode(`${j+1}. ${c}`));div.append(lab);});
+ const exp=document.createElement('div');exp.className='explain hidden';exp.id='exp'+i;exp.textContent=`正解：${Number(q.answer)+1}. ${q.choices[Number(q.answer)]}\n${q.explanation||'解説なし'}`;div.append(exp);$('questionList').append(div);
+ });
+}
+$('grade').addEventListener('click',()=>{
+ let correct=0,answered=0;
+ questions.forEach((q,i)=>{const selected=document.querySelector(`input[name="q${i}"]:checked`);if(selected){answered++;if(Number(selected.value)===Number(q.answer))correct++;}$('exp'+i).classList.remove('hidden');});
+ $('score').textContent=`結果：${correct} / ${questions.length}問正解（回答 ${answered}問）`; $('score').classList.remove('hidden');$('score').className='status success';
+});
+</script></body></html>
