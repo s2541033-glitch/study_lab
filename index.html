@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#172554"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="STUDY LAB">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png">
+<title>STUDY LAB</title>
+<style>
+:root{--navy:#172554;--blue:#3157c8;--bg:#f4f6fb;--ink:#172033;--muted:#6c7485;--line:#e7eaf1;--green:#16845b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
+header{background:linear-gradient(135deg,#172554,#294b9b);color:white;padding:23px 20px 27px;border-radius:0 0 24px 24px}
+.top{display:flex;justify-content:space-between;align-items:center}.brand{font-weight:850;letter-spacing:1.5px;font-size:22px}.tag{font-size:10px;opacity:.75;letter-spacing:1px}
+.greeting{margin-top:24px;font-size:13px;opacity:.85}.headline{font-size:22px;font-weight:800;margin-top:5px}.sub{font-size:12px;opacity:.75;margin-top:7px}
+main{max-width:720px;margin:auto;padding:18px 15px 100px}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat,.panel,.subject,.qcard{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:0 3px 12px #14234a08}
+.stat small{color:var(--muted);font-size:11px}.stat strong{display:block;font-size:25px;margin:5px 0}.stat span{font-size:11px;color:var(--muted)}
+.stitle{font-size:16px;font-weight:800;margin:23px 2px 11px;display:flex;justify-content:space-between}.stitle small{font-size:10px;color:var(--muted);font-weight:500}
+.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.action{border:0;border-radius:15px;padding:15px;text-align:left;background:white;box-shadow:0 3px 12px #14234a08;color:var(--ink);min-height:95px}
+.action .emoji{font-size:22px}.action b{display:block;margin-top:7px;font-size:14px}.action small{color:var(--muted);font-size:11px}
+.subjects{display:grid;gap:9px}.subject{display:flex;align-items:center;gap:11px;padding:12px}.ico{width:40px;height:40px;background:#edf2ff;border-radius:12px;display:grid;place-items:center;font-size:20px}.subject b{font-size:13px}.subject small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.subject button{margin-left:auto}
+button{font:inherit;cursor:pointer}.primary{background:var(--blue);color:white;border:0;border-radius:11px;padding:12px 15px;font-weight:700}.secondary{background:#eef2ff;color:var(--blue);border:0;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:700}.ghost{background:transparent;border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--muted)}
+nav{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(15px);border-top:1px solid var(--line);display:flex;padding:7px 4px calc(7px + env(safe-area-inset-bottom));z-index:5}
+nav button{border:0;background:none;color:#7b8392;font-size:10px;flex:1;padding:5px 1px}nav button.active{color:var(--blue);font-weight:800}nav span{display:block;font-size:19px;margin-bottom:2px}
+.view{display:none}.view.active{display:block}.qcard{padding:17px;margin-top:13px}.meta{font-size:11px;color:var(--muted)}.qtext{font-size:16px;font-weight:750;line-height:1.65;margin:13px 0}.choices{display:grid;gap:8px}.choice{width:100%;text-align:left;background:#f7f8fc;border:1px solid var(--line);border-radius:11px;padding:12px;font-size:14px}.choice.correct{border:2px solid var(--green);background:#edfaf4}.choice.wrong{border:2px solid #d34b4b;background:#fff1f1}.explain{background:#f1f5ff;padding:12px;border-radius:11px;font-size:13px;line-height:1.7;margin-top:12px}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:white;margin:6px 0 12px}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.muted{color:var(--muted);font-size:12px}.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}
+@media(min-width:600px){header{padding:28px max(24px,calc((100% - 680px)/2))}main{padding-top:23px}.actions{grid-template-columns:repeat(4,1fr)}}
+</style></head><body>
+<header><div class="top"><div><div class="brand">STUDY LAB</div><div class="tag">YOUR PERSONAL STUDY SPACE</div></div><div>📚</div></div><div class="greeting">今日も一歩ずつ。</div><div class="headline">学びを、成果に変えよう。</div><div class="sub">勉強の記録も、苦手の克服も、ここから。</div></header>
+<main>
+<section id="home" class="view active"><div class="stats"><div class="stat"><small>解いた問題</small><strong id="total">0</strong><span>累計問題数</span></div><div class="stat"><small>正答率</small><strong id="rate">--%</strong><span>回答した問題の正答率</span></div></div>
+<div class="stitle">学習メニュー <small>LET'S STUDY</small></div><div class="actions">
+<button class="action" onclick="show('practice')"><div class="emoji">📝</div><b>問題演習</b><small>選択問題に挑戦</small></button>
+<button class="action" onclick="show('subjects')"><div class="emoji">📚</div><b>科目・問題</b><small>科目を選んで学習</small></button>
+<button class="action" onclick="show('review')"><div class="emoji">🔖</div><b>間違えた問題</b><small>苦手をくり返し復習</small></button>
+<button class="action" onclick="show('create')"><div class="emoji">✨</div><b>問題を追加</b><small>自分の問題を登録</small></button></div>
+<div class="stitle">最近の学習 <small id="recentCount">0件</small></div><div class="panel" id="recent"><div class="empty">まずは問題を解いてみよう！</div></div>
+<div class="stitle">学習のヒント</div><div class="panel muted">正解を覚えるだけでなく、「なぜその答えになるのか」を説明できるか確認すると、知識が定着しやすくなります。</div></section>
+<section id="practice" class="view"><div class="stitle">問題演習 <small>QUIZ</small></div><div class="row"><select id="filter" onchange="startQuiz()"><option value="すべて">すべての科目</option></select><button class="secondary" onclick="startQuiz()">出題し直す</button></div><div id="quiz"></div></section>
+<section id="subjects" class="view"><div class="stitle">科目一覧 <small>SUBJECTS</small></div><div id="subjectList" class="subjects"></div></section>
+<section id="review" class="view"><div class="stitle">復習リスト <small>REVIEW</small></div><div id="reviewList"></div></section>
+<section id="create" class="view"><div class="stitle">問題を追加 <small>CREATE</small></div><div class="panel">
+<label class="muted">科目</label><input id="subj" placeholder="例：放射線腫瘍学"><label class="muted">問題文</label><textarea id="question" rows="3" placeholder="問題文を入力"></textarea>
+<label class="muted">選択肢（4つ）</label><input id="c0" placeholder="選択肢 A"><input id="c1" placeholder="選択肢 B"><input id="c2" placeholder="選択肢 C"><input id="c3" placeholder="選択肢 D">
+<label class="muted">正解</label><select id="answer"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select><label class="muted">解説</label><textarea id="explanation" rows="3" placeholder="正解の理由・覚えるポイント"></textarea><button class="primary" style="width:100%" onclick="addQuestion()">問題を保存する</button><p class="muted">問題・学習記録はこの端末のブラウザに保存されます。</p></div>
+<div class="stitle">データ管理</div><div class="panel"><button class="secondary" onclick="exportData()">データを書き出す</button> <button class="ghost" onclick="document.getElementById('file').click()">データを読み込む</button><input id="file" type="file" accept="application/json" hidden onchange="importData(event)"></div></section>
+</main>
+<nav><button data-v="home" class="active" onclick="show('home')"><span>⌂</span>ホーム</button><button data-v="practice" onclick="show('practice')"><span>✎</span>演習</button><button data-v="subjects" onclick="show('subjects')"><span>▤</span>科目</button><button data-v="review" onclick="show('review')"><span>↻</span>復習</button><button data-v="create" onclick="show('create')"><span>＋</span>追加</button></nav>
+<script>
+const initial=[
+{id:'q1',subject:'放射線腫瘍学',q:'放射線治療で、腫瘍に十分な線量を与えながら正常組織への影響を抑えるために重要なのはどれ？',choices:['線量分布の最適化','管電流の最大化','撮影時間の延長','画像マトリクスの縮小'],answer:0,explain:'標的体積に適切な線量を集中させ、周囲の正常組織の線量をできるだけ低くすることが重要です。'},
+{id:'q2',subject:'診療画像検査学',q:'MRIのT1強調画像で、一般に脂肪はどのように描出される？',choices:['高信号','低信号','無信号','常に水と同じ信号'],answer:0,explain:'脂肪はT1緩和時間が短いため、一般にT1強調画像で高信号になります。'},
+{id:'q3',subject:'診療画像機器学',q:'CTのヘリカルスキャンで、寝台移動量とビーム幅の関係を表す指標はどれ？',choices:['ピクセルサイズ','ヘリカルピッチ','CT値','ウィンドウ幅'],answer:1,explain:'ヘリカルピッチは、1回転あたりの寝台移動距離を総コリメーション幅で割った値です。'},
+{id:'q4',subject:'放射線物理学',q:'単位時間あたりに崩壊する原子核の数を表す量はどれ？',choices:['吸収線量','放射能','照射線量','線エネルギー付与'],answer:1,explain:'放射能は単位時間あたりの壊変数で、単位はベクレル（Bq）です。'}
+];
+let qs=JSON.parse(localStorage.getItem('sl_qs')||'null')||initial;
+let hist=JSON.parse(localStorage.getItem('sl_hist')||'[]'),wrong=JSON.parse(localStorage.getItem('sl_wrong')||'[]'),current=null,done=false;
+const save=()=>{localStorage.setItem('sl_qs',JSON.stringify(qs));localStorage.setItem('sl_hist',JSON.stringify(hist));localStorage.setItem('sl_wrong',JSON.stringify(wrong));};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const subjects=()=>[...new Set(qs.map(q=>q.subject))];
+function show(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.v===id));if(id==='home')home();if(id==='subjects')renderSubjects();if(id==='review')renderReview();if(id==='practice')startQuiz();}
+function home(){document.getElementById('total').textContent=hist.length;let n=hist.length?Math.round(hist.filter(x=>x.ok).length/hist.length*100):null;document.getElementById('rate').textContent=n===null?'--%':n+'%';document.getElementById('recentCount').textContent=hist.length+'件';let a=hist.slice(-4).reverse();document.getElementById('recent').innerHTML=a.length?a.map(x=>`<div style="padding:7px 0;border-bottom:1px solid #eee;font-size:13px">${x.ok?'⭕':'❌'} ${esc(x.subject)} <span class="muted">${new Date(x.date).toLocaleDateString('ja-JP')}</span></div>`).join(''):'<div class="empty">まだ学習記録がありません。まずは問題を解いてみよう！</div>';}
+function renderSubjects(){document.getElementById('filter').innerHTML='<option value="すべて">すべての科目</option>'+subjects().map(s=>`<option>${esc(s)}</option>`).join('');document.getElementById('subjectList').innerHTML=subjects().map(s=>`<div class="subject"><div class="ico">📘</div><div><b>${esc(s)}</b><small>${qs.filter(q=>q.subject===s).length}問</small></div><button class="secondary" onclick="pickSubject('${esc(s)}')">演習する</button></div>`).join('')||'<div class="empty">問題を追加してください。</div>';}
+function pickSubject(s){show('practice');document.getElementById('filter').value=s;startQuiz();}
+function startQuiz(){let f=document.getElementById('filter').value,p=qs.filter(x=>f==='すべて'||x.subject===f);if(!p.length){document.getElementById('quiz').innerHTML='<div class="empty">問題がありません。問題を追加してください。</div>';return;}current=p[Math.floor(Math.random()*p.length)];done=false;drawQuiz();}
+function drawQuiz(){document.getElementById('quiz').innerHTML=`<div class="qcard"><div class="meta">${esc(current.subject)}</div><div class="qtext">${esc(current.q)}</div><div class="choices">${current.choices.map((c,i)=>`<button class="choice" id="c${i}" onclick="answer(${i})">${'ABCD'[i]}. ${esc(c)}</button>`).join('')}</div><div id="feedback"></div><div class="row" style="margin-top:13px"><button class="ghost" onclick="toggleWrong()">${wrong.includes(current.id)?'★ 復習中':'☆ 復習に追加'}</button><button id="next" class="primary" style="display:none" onclick="startQuiz()">次の問題 →</button></div></div>`;}
+function answer(i){if(done)return;done=true;let ok=i===current.answer;current.choices.forEach((_,n)=>{let b=document.getElementById('c'+n);b.disabled=true;if(n===current.answer)b.classList.add('correct');else if(n===i)b.classList.add('wrong');});hist.push({id:current.id,subject:current.subject,ok,date:Date.now()});if(!ok&&!wrong.includes(current.id))wrong.push(current.id);save();document.getElementById('feedback').innerHTML=`<div class="explain"><b>${ok?'正解！ 🎉':'不正解。正解は '+ 'ABCD'[current.answer]+' です'}</b><br>${esc(current.explain||'解説はありません。')}</div>`;document.getElementById('next').style.display='block';}
+function toggleWrong(){if(wrong.includes(current.id))wrong=wrong.filter(x=>x!==current.id);else wrong.push(current.id);save();drawQuiz();}
+function renderReview(){let a=qs.filter(q=>wrong.includes(q.id));document.getElementById('reviewList').innerHTML=a.length?a.map(q=>`<div class="qcard"><div class="meta">${esc(q.subject)}</div><b>${esc(q.q)}</b><p class="muted">正解：${'ABCD'[q.answer]}. ${esc(q.choices[q.answer])}</p><div class="explain">${esc(q.explain||'解説なし')}</div><button class="secondary" style="margin-top:10px" onclick="removeWrong('${q.id}')">復習リストから外す</button></div>`).join(''):'<div class="empty">復習する問題はまだありません。間違えた問題がここに追加されます。</div>';}
+function removeWrong(id){wrong=wrong.filter(x=>x!==id);save();renderReview();}
+function addQuestion(){let s=document.getElementById('subj').value.trim(),q=document.getElementById('question').value.trim(),c=[0,1,2,3].map(i=>document.getElementById('c'+i).value.trim()),a=+document.getElementById('answer').value,e=document.getElementById('explanation').value.trim();if(!s||!q||c.some(x=>!x)){alert('科目・問題文・4つの選択肢を入力してください。');return;}qs.push({id:'u'+Date.now(),subject:s,q,choices:c,answer:a,explain:e});save();alert('問題を保存しました！');['subj','question','c0','c1','c2','c3','explanation'].forEach(id=>document.getElementById(id).value='');renderSubjects();}
+function exportData(){let b=new Blob([JSON.stringify({qs,hist,wrong},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='study-lab-data.json';a.click();URL.revokeObjectURL(a.href);}
+function importData(ev){let f=ev.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(d.qs)qs=d.qs;if(d.hist)hist=d.hist;if(d.wrong)wrong=d.wrong;save();home();alert('読み込みました。');}catch{alert('ファイルを読み込めませんでした。');}};r.readAsText(f);}
+home();renderSubjects();
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script></body></html>
